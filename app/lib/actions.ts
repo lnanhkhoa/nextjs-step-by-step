@@ -82,15 +82,8 @@ export async function updateInvoice(id: string, formData: FormData) {
     status: formData.get("status"),
   }
 
-  const validatedFields = UpdateInvoice.safeParse(rawValues)
-  if (!validatedFields.success) {
-    return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Invoice.",
-      values: rawValues,
-    }
-  }
-  const { customerId, amount, status } = validatedFields.data
+  const validatedFields = UpdateInvoice.parse(rawValues)
+  const { customerId, amount, status } = validatedFields
   const amountInCents = amount * 100
   const date = new Date().toISOString().split("T")[0]
 
@@ -105,9 +98,7 @@ export async function updateInvoice(id: string, formData: FormData) {
   `
   } catch (error) {
     console.error(error)
-    return {
-      message: "Database Error: Failed to Update Invoice.",
-    }
+    throw new Error("Database Error: Failed to Update Invoice.")
   }
   revalidatePath("/dashboard/invoices")
   redirect("/dashboard/invoices")
